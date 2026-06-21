@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatCurrency } from "@/lib/utils";
-import { ShoppingBag, Truck, Pencil, UserCircle, Plus, AlertTriangle, CheckCircle, ArrowUpRight } from "lucide-react";
+import { ShoppingBag, Truck, UserCircle, Plus, AlertTriangle, CheckCircle, ArrowUpRight } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl p-4">
             <h3 className="font-extrabold text-sm text-gray-900 mb-3">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2">
-              {[["Shop Products", ShoppingBag, "/shop"], ["Track Orders", Truck, "/orders"], ["Custom Order", Pencil, "/custom-order"], ["Edit Profile", UserCircle, "/profile"]].map(([label, Icon, href]: any) => (
+              {[["Shop Products", ShoppingBag, "/shop"], ["Track Orders", Truck, "/orders"], ["Edit Profile", UserCircle, "/profile"]].map(([label, Icon, href]: any) => (
                 <Link key={href} href={href} className="bg-gray-50 border border-gray-200 rounded-xl py-3 text-xs font-semibold text-gray-700 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
                   <Icon size={14} strokeWidth={1.8} />{label}
                 </Link>

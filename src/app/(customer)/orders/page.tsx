@@ -15,7 +15,7 @@ export default function OrdersPage() {
     fetch("/api/orders").then(r => r.json()).then(d => { setOrders(d.data || []); setLoading(false); });
   }, []);
 
-  const tabs = ["ALL","ORDER_RECEIVED","IN_PRODUCTION","PROOF_SENT","SHIPPED","DELIVERED"];
+  const tabs = ["ALL","CONFIRMED","ORDER_RECEIVED","IN_REVIEW","PROOF_SENT","IN_PRODUCTION","SHIPPED","DELIVERED","CANCELLED"];
   const filtered = orders.filter(o =>
     (tab === "ALL" || o.status === tab) &&
     o.orderNumber.toLowerCase().includes(search.toLowerCase())
@@ -55,7 +55,10 @@ export default function OrdersPage() {
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-sm text-gray-900 truncate">{o.items?.[0]?.productName || "Order"}{o.items?.length > 1 ? ` +${o.items.length-1}` : ""}</p>
-                <p className="text-xs text-gray-400">#{o.orderNumber}</p>
+                <p className="text-xs text-gray-400">
+                  <span className="font-medium text-gray-600">{o.user?.name || "Customer"}</span>
+                  <span> · #{o.orderNumber}</span>
+                </p>
               </div>
             </div>
             <span className="font-bold text-sm text-gray-900">{formatCurrency(Number(o.total))}</span>

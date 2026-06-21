@@ -5,7 +5,7 @@ import { Search, Download, ChevronRight } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatCurrency } from "@/lib/utils";
 
-const STATUSES = ["ALL","ORDER_RECEIVED","IN_REVIEW","PROOF_SENT","IN_PRODUCTION","QUALITY_CHECK","SHIPPED","DELIVERED","CANCELLED"];
+const STATUSES = ["ALL","CONFIRMED","ORDER_RECEIVED","IN_REVIEW","PROOF_SENT","IN_PRODUCTION","QUALITY_CHECK","SHIPPED","DELIVERED","CANCELLED"];
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
