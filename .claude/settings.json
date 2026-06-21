@@ -7,7 +7,40 @@
       "mcp__claude_ai_Supabase__get_project_url",
       "mcp__claude_ai_Supabase__get_publishable_keys",
       "Bash(npm run *)",
-      "mcp__claude_ai_Supabase__execute_sql"
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(cp /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\\\\\(admin\\\\\\)/admin/login/page.tsx /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\\\\\(admin-public\\\\\\)/admin/login/page.tsx)",
+      "Bash(curl -s -I http://localhost:3000/admin/login)",
+      "Bash(curl -s -I http://localhost:3000/login)",
+      "Bash(npx tsx -e ' *)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__restore_project",
+      "WebFetch(domain:www.insectshield.com)",
+      "Bash(npx tsc *)",
+      "WebSearch",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://www.insectshield.com/cdn/shop/files/IS-VS7FR-HVE-KHK_Front_WEB.jpg\")",
+      "WebFetch(domain:www.pinterest.com)",
+      "Bash(npx tsx *)",
+      "Bash(mkdir -p /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\\\\\(customer\\\\\\)/shop/\\\\[slug\\\\])",
+      "Bash(npx prisma *)",
+      "Bash(npm install *)",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(node -e \"const b = require\\('bcryptjs'\\); b.hash\\('Superior@2025!', 10\\).then\\(h => console.log\\(h\\)\\)\")",
+      "Bash(node -e 'const b = require\\('\\\\''bcryptjs'\\\\''\\); b.compare\\('\\\\''Superior@2025!'\\\\'', '\\\\''$2a$10$Gx5hnPxGPcQyH9qZ7pyS5epKNJ9Tzij6UaCEFpQq.SoaFSXy/AE3u'\\\\''\\).then\\(r => console.log\\('\\\\''match:'\\\\'', r\\)\\)')",
+      "Bash(mkdir -p /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/api/notifications /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\\\\\(customer\\\\\\)/checkout /Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\\\\\(customer\\\\\\)/notifications \"/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/\\(customer\\)/orders/[id]\")",
+      "Bash(mkdir -p \"/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/api/orders/[id]\")",
+      "mcp__claude_ai_Supabase__get_logs",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(npx --prefix /Users/abubakkarbakthathi/Documents/png-embroidery-portal prisma generate)",
+      "Bash(git -C /Users/abubakkarbakthathi/Documents/png-embroidery-portal status)",
+      "Bash(git -C /Users/abubakkarbakthathi/Documents/png-embroidery-portal log --oneline -5)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ],
+    "additionalDirectories": [
+      "/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/(admin)/admin/login",
+      "/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/(customer)/shop",
+      "/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/(customer)/orders",
+      "/Users/abubakkarbakthathi/Documents/png-embroidery-portal/src/app/api/orders/[id]"
     ]
   }
 }

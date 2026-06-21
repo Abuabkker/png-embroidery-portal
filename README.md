@@ -21,7 +21,7 @@ Full-stack Next.js 15 vendor portal for PNG Embroidery, Port Moresby, Papua New 
 src/
 ├── app/
 │   ├── (auth)/              # Login, Register pages
-│   ├── (customer)/          # Customer portal (dashboard, shop, orders, cart)
+│   ├── (customer)/          # Customer portal (dashboard, shop, orders, cart, reports)
 │   ├── (admin)/             # Admin portal (dashboard, orders, products, queue, reports)
 │   └── api/                 # REST API routes
 │       ├── auth/            # NextAuth + register
@@ -110,10 +110,29 @@ Open http://localhost:3000
 
 ## Demo Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@pngembroidery.net | Admin@2025! |
-| Customer | john@gmail.com | Customer@2025! |
+| Role | Email | Password | Access |
+|------|-------|----------|--------|
+| Admin | admin@pngembroidery.net | Admin@2025! | Full admin portal |
+| Superior Customer | philip@gmail.com | Superior@2025! | Shop, Orders, Dashboard, Reports |
+| Standard Customer | john@gmail.com | Customer@2025! | Shop, Orders, Dashboard |
+
+### Customer Role Differences
+
+| Feature | Standard Customer | Superior Customer |
+|---------|:-----------------:|:-----------------:|
+| Shop & Browse | ✅ | ✅ |
+| My Orders | ✅ | ✅ |
+| Cart & Checkout | ✅ | ✅ |
+| Dashboard | ✅ | ✅ |
+| Reports & Analytics | ❌ | ✅ |
+| Customer-wise reports | ❌ | ✅ |
+| PDF / Excel export | ❌ | ✅ |
+
+To promote a user to Superior Customer, update their role in the database:
+
+```sql
+UPDATE "User" SET role = 'SUPERIOR_CUSTOMER' WHERE email = 'user@example.com';
+```
 
 ## Deploy to Vercel
 
@@ -146,6 +165,7 @@ The `vercel.json` runs `prisma generate && next build` automatically.
 | POST | /api/admin/products | Admin | Create product |
 | GET | /api/admin/queue | Admin | Customization queue |
 | PATCH | /api/admin/queue | Admin | Review customization |
+| GET | /api/reports/customer | Superior Customer | Purchase analytics & reports |
 | GET | /api/admin/reports | Admin | Analytics data |
 | GET | /api/admin/customers | Admin | Customer list |
 | GET | /api/admin/discounts | Admin | Discount codes |
