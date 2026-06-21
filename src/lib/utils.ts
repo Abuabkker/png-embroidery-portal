@@ -7,11 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(amount: number | string) {
   const n = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat("en-PG", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "PGK",
-    currencyDisplay: "symbol",
-  }).format(n).replace("PGK", "K");
+    currency: "USD",
+  }).format(n);
 }
 
 export function generateOrderNumber() {

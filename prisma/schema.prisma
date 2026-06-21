@@ -70,6 +70,7 @@ model User {
 
 enum Role {
   CUSTOMER
+  SUPERIOR_CUSTOMER
   ADMIN
   SUPER_ADMIN
 }
@@ -146,13 +147,12 @@ model CartItem {
   userId          String
   productId       String
   quantity        Int      @default(1)
-  customization   Json?    // { type, text, logoUrl, placement, threadColor, notes }
+  customization   Json?    // { size, embroideryName, logo, quantity }
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product         Product  @relation(fields: [productId], references: [id])
 
-  @@unique([userId, productId])
   @@index([userId])
 }
 
@@ -194,6 +194,7 @@ model Order {
 }
 
 enum OrderStatus {
+  CONFIRMED
   ORDER_RECEIVED
   IN_REVIEW
   PROOF_SENT

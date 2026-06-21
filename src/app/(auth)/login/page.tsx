@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,9 +27,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true); setError("");
     const res = await signIn("credentials", { email, password, redirect: false });
+    if (res?.error) { setLoading(false); setError("Invalid email or password"); return; }
+    const session = await getSession();
+    const role = (session?.user as any)?.role;
     setLoading(false);
-    if (res?.error) { setError("Invalid email or password"); return; }
-    router.push("/");
+    router.push(role === "ADMIN" || role === "SUPER_ADMIN" ? "/admin/dashboard" : "/dashboard");
   }
 
   async function handleGoogle() {

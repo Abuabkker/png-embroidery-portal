@@ -6,16 +6,19 @@ export default auth((req) => {
   const isLoggedIn = !!session;
   const role = (session?.user as any)?.role;
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+  const isSuperiorCustomer = role === "SUPERIOR_CUSTOMER";
 
   const isAuthPage = nextUrl.pathname.startsWith("/login") || nextUrl.pathname.startsWith("/register");
   const isAdminLoginPage = nextUrl.pathname === "/admin/login";
   const isAdminPage = nextUrl.pathname.startsWith("/admin") && !isAdminLoginPage;
   const isCustomerPage = !nextUrl.pathname.startsWith("/admin") && !nextUrl.pathname.startsWith("/api") && !isAuthPage;
+  const isReportsPage = nextUrl.pathname.startsWith("/reports");
 
   if (isAdminPage && (!isLoggedIn || !isAdmin)) return NextResponse.redirect(new URL("/admin/login", nextUrl));
   if (isAuthPage && isLoggedIn) return NextResponse.redirect(new URL(isAdmin ? "/admin/dashboard" : "/dashboard", nextUrl));
   if (isAdminLoginPage && isLoggedIn && isAdmin) return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
   if (isCustomerPage && !isLoggedIn && nextUrl.pathname !== "/") return NextResponse.redirect(new URL("/login", nextUrl));
+  if (isReportsPage && isLoggedIn && !isSuperiorCustomer && !isAdmin) return NextResponse.redirect(new URL("/dashboard", nextUrl));
 
   return NextResponse.next();
 });
