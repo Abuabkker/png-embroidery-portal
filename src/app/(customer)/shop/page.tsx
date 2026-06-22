@@ -30,18 +30,25 @@ export default function ShopPage() {
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.data || []));
   }, []);
 
+  // Always fetch all products (no category filter) so we can count per-category
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams({ limit: "200" });
-    if (activeCategory !== "all") params.set("category", activeCategory);
     if (search) params.set("search", search);
     fetch(`/api/products?${params}`)
       .then(r => r.json())
       .then(d => { setProducts(d.data || []); setLoading(false); });
-  }, [activeCategory, search]);
+  }, [search]);
+
+  // Categories that have at least one product (given current search)
+  const populatedCategorySlugs = useMemo(
+    () => new Set(products.map((p: any) => p.category?.slug).filter(Boolean)),
+    [products]
+  );
 
   const filtered = useMemo(() => {
     let list = [...products];
+    if (activeCategory !== "all") list = list.filter(p => p.category?.slug === activeCategory);
     if (onlyInStock) list = list.filter(p => p.stockQty > 0);
     if (onlyCustomizable) list = list.filter(p => p.isCustomizable);
     list = list.filter(p => Number(p.basePrice) <= maxPrice);
@@ -49,7 +56,7 @@ export default function ShopPage() {
     else if (sort === "price-desc") list.sort((a, b) => Number(b.basePrice) - Number(a.basePrice));
     else if (sort === "name-asc") list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [products, onlyInStock, onlyCustomizable, maxPrice, sort]);
+  }, [products, activeCategory, onlyInStock, onlyCustomizable, maxPrice, sort]);
 
   const FilterPanel = () => (
     <div className="space-y-7">
@@ -65,7 +72,7 @@ export default function ShopPage() {
               {activeCategory === "all" && <Check size={14} />}
             </button>
           </li>
-          {categories.map((c: any) => (
+          {categories.filter((c: any) => populatedCategorySlugs.has(c.slug)).map((c: any) => (
             <li key={c.slug}>
               <button onClick={() => setActiveCategory(c.slug)}
                 className={`w-full text-left text-sm px-3 py-2 rounded-lg font-semibold transition-colors flex items-center justify-between

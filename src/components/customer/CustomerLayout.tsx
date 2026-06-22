@@ -122,7 +122,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
             </button>
             <Image src="/exxonmobil-logo.png" alt="ExxonMobil" width={120} height={36} className="object-contain" priority />
             <div className="hidden sm:block w-px h-7 bg-gray-200" />
-            <Image src="/logo-new.webp" alt="PNG Embroidery" width={36} height={36} className="hidden sm:block object-contain" priority />
+            <Image src="/logo-new.webp" alt="PNG Embroidery" width={52} height={52} className="hidden sm:block object-contain" priority />
           </div>
           <div className="flex items-center gap-3">
             {/* Notification bell */}
