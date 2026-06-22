@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Mail, Eye, EyeOff, Loader2, Shield } from "lucide-react";
 
 const BASE = "https://pngembroidery.net/wp-content/uploads/2025/";
@@ -57,10 +58,7 @@ export default function AdminLoginPage() {
       <div className="flex-1 flex flex-col justify-center px-8 lg:px-16 overflow-y-auto">
         <div className="max-w-md w-full mx-auto">
           <div className="flex justify-end mb-8">
-            <div className="text-right">
-              <div className="text-3xl font-extrabold text-navy tracking-tight">PNG</div>
-              <div className="text-xl font-serif italic text-brand-red -mt-1">Embroidery</div>
-            </div>
+            <Image src="/logo-new.webp" alt="PNG Embroidery" width={90} height={90} className="object-contain" priority />
           </div>
           <div className="flex items-center gap-4 mb-5">
             <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">Admin Portal</span>

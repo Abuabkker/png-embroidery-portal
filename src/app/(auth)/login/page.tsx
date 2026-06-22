@@ -53,16 +53,14 @@ export default function LoginPage() {
       {/* Right — form */}
       <div className="flex-1 flex flex-col justify-center px-8 lg:px-16 overflow-y-auto">
         <div className="max-w-md w-full mx-auto">
-          {/* Logo */}
-          <div className="flex justify-end mb-10">
-            <div className="text-right">
-              <div className="text-3xl font-extrabold text-navy tracking-tight">PNG</div>
-              <div className="text-xl font-serif italic text-brand-red -mt-1">Embroidery</div>
-            </div>
+          {/* Logos */}
+          <div className="flex items-center justify-between mb-10">
+            <Image src="/exxonmobil-logo.png" alt="ExxonMobil" width={160} height={48} className="object-contain" priority />
+            <Image src="/logo-new.webp" alt="PNG Embroidery" width={80} height={80} className="object-contain" priority />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome to <strong>PNG Embroidery</strong></h1>
-          <p className="text-sm text-gray-500 mb-8">ISO-9001 Certified Uniform & Embroidery Specialist</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
+          <p className="text-sm text-gray-500 mb-8">ExxonMobil Uniform & Embroidery Portal</p>
 
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-5">{error}</div>}
 

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LayoutDashboard, ShoppingBag, ClipboardList, BarChart2, Bell, LogOut, ShoppingCart, User, Menu, X } from "lucide-react";
 import { Logo } from "@/components/shared/Logo";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const BASE_NAV = [
@@ -119,7 +120,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
             <button className="lg:hidden text-gray-500" onClick={() => setMobileOpen(!mobileOpen)}>
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <Logo size="sm" />
+            <Image src="/exxonmobil-logo.png" alt="ExxonMobil" width={120} height={36} className="object-contain" priority />
+            <div className="hidden sm:block w-px h-7 bg-gray-200" />
+            <Image src="/logo-new.webp" alt="PNG Embroidery" width={36} height={36} className="hidden sm:block object-contain" priority />
           </div>
           <div className="flex items-center gap-3">
             {/* Notification bell */}

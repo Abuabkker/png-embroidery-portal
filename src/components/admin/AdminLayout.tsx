@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LayoutDashboard, ClipboardList, Package, Pencil, Users, BarChart2, Tag, LogOut, Menu, X, User } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -25,10 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-slate-50">
       <aside className={cn("fixed inset-y-0 left-0 z-40 w-[235px] bg-navy flex flex-col transition-transform lg:translate-x-0", mobileOpen ? "translate-x-0" : "-translate-x-full")}>
         <div className="px-5 py-5 border-b border-white/10">
-          <div className="text-left">
-            <div className="text-2xl font-extrabold text-white tracking-tight leading-none">PNG</div>
-            <div className="text-base font-serif italic text-yellow-300 leading-none mt-0.5">Embroidery</div>
-          </div>
+          <Image src="/logo-new.webp" alt="PNG Embroidery" width={110} height={110} className="object-contain" priority />
           <div className="text-[10px] font-bold tracking-widest text-white/40 mt-2 uppercase">Admin Portal</div>
         </div>
         <nav className="flex-1 p-3 overflow-y-auto">
