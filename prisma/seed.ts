@@ -168,7 +168,7 @@ async function main() {
 
   let productCount = 0;
   for (const p of products) {
-    await prisma.product.upsert({
+    const product = await prisma.product.upsert({
       where: { slug: p.slug },
       update: {},
       create: {
@@ -186,6 +186,25 @@ async function main() {
         isActive: true,
       },
     });
+
+    // Seed per-variant inventory (distribute total stock across size×color combinations)
+    const sizes:  string[] = p.sizes?.length  ? p.sizes  : [""];
+    const colors: string[] = p.colors?.length ? p.colors : [""];
+    const variantCount = sizes.length * colors.length;
+
+    if (variantCount > 0) {
+      const perVariant = variantCount > 1 ? Math.max(1, Math.floor(p.stock / variantCount)) : p.stock;
+      for (const color of colors) {
+        for (const size of sizes) {
+          await prisma.productVariant.upsert({
+            where: { productId_size_color: { productId: product.id, size, color } },
+            update: {},
+            create: { productId: product.id, size, color, stockQty: perVariant },
+          });
+        }
+      }
+    }
+
     productCount++;
   }
   console.log("✅ Products seeded:", productCount);

@@ -2,6 +2,7 @@ import { OrderStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  PENDING_CONFIRMATION: { label: "Pending Confirmation", className: "bg-yellow-100 text-yellow-700" },
   CONFIRMED:       { label: "Confirmed",     className: "bg-green-100 text-green-700" },
   ORDER_RECEIVED:  { label: "Received",      className: "bg-gray-100 text-gray-600" },
   IN_REVIEW:       { label: "In Review",     className: "bg-purple-100 text-purple-700" },

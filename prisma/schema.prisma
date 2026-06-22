@@ -57,12 +57,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  orders        Order[]
-  addresses     Address[]
-  cartItems     CartItem[]
-  notifications Notification[]
+  accounts        Account[]
+  sessions        Session[]
+  orders          Order[]
+  addresses       Address[]
+  cartItems       CartItem[]
+  notifications   Notification[]
+  statusChanges   OrderStatusHistory[]
 
   @@index([email])
   @@index([role])
@@ -116,6 +117,7 @@ model Product {
   isActive         Boolean       @default(true)
   stockQty         Int           @default(0)
   lowStockThreshold Int          @default(10)
+  sku              String?       @unique
   imageUrl         String?
   images           ProductImage[]
   tags             String[]      @default([])
@@ -126,10 +128,23 @@ model Product {
   category         Category      @relation(fields: [categoryId], references: [id])
   orderItems       OrderItem[]
   cartItems        CartItem[]
+  variants         ProductVariant[]
 
   @@index([categoryId])
   @@index([isActive])
   @@index([slug])
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  size      String   @default("")
+  color     String   @default("")
+  stockQty  Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size, color])
+  @@index([productId])
 }
 
 model ProductImage {
@@ -173,11 +188,15 @@ model Order {
   total           Decimal       @db.Decimal(10, 2)
   discountCode    String?
   shippingMethod  String?       // standard, express
-  trackingNumber  String?
-  notes           String?       @db.Text
-  adminNotes      String?       @db.Text
-  estimatedDelivery DateTime?
-  deliveredAt     DateTime?
+  trackingNumber      String?
+  notes               String?   @db.Text
+  adminNotes          String?   @db.Text
+  estimatedDelivery   DateTime?
+  deliveredAt         DateTime?
+  paymentReceivedDate DateTime?
+  bankDepositRef      String?
+  amountReceived      Decimal?  @db.Decimal(10, 2)
+  paymentNotes        String?   @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -194,6 +213,7 @@ model Order {
 }
 
 enum OrderStatus {
+  PENDING_CONFIRMATION
   CONFIRMED
   ORDER_RECEIVED
   IN_REVIEW
@@ -208,6 +228,7 @@ enum OrderStatus {
 
 enum PaymentStatus {
   PENDING
+  PARTIALLY_PAID
   PAID
   FAILED
   REFUNDED
@@ -231,15 +252,17 @@ model OrderItem {
 }
 
 model OrderStatusHistory {
-  id        String      @id @default(cuid())
-  orderId   String
-  status    OrderStatus
-  note      String?
-  changedBy String?     // admin user id
-  createdAt DateTime    @default(now())
-  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  orderId       String
+  status        OrderStatus
+  note          String?
+  changedBy     String?
+  changedByUser User?       @relation(fields: [changedBy], references: [id], onDelete: SetNull)
+  createdAt     DateTime    @default(now())
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+  @@index([changedBy])
 }
 
 // ─── Customization Review ─────────────────────────────────────────────────────

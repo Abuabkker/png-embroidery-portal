@@ -50,8 +50,8 @@ export default function CheckoutPage() {
 
   const subtotal    = items.reduce((s, i) => s + Number(i.product.basePrice) * i.quantity, 0);
   const customTotal = items.reduce((s, i) => i.customization ? s + Number(i.product.customSurcharge ?? 0) * i.quantity : s, 0);
-  const shipping    = shippingMethod === "express" ? 60 : 25;
-  const total       = subtotal + customTotal + shipping;
+  const shipping    = 0;
+  const total       = subtotal + customTotal;
 
   async function handleConfirm() {
     if (items.length === 0) return;
@@ -71,14 +71,14 @@ export default function CheckoutPage() {
     }
   }
 
-  async function downloadInvoice() {
+  async function generatePDF(type: "quotation" | "invoice") {
     const { default: jsPDF } = await import("jspdf");
     const autoTable = (await import("jspdf-autotable")).default;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
 
     const W  = doc.internal.pageSize.getWidth();
     const mL = 14;
-    const mR = W - 14; // 196
+    const mR = W - 14;
 
     // ── Navy header band ──
     doc.setFillColor(30, 58, 138);
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
     doc.text("Tel: +675 311 2000  ·  sales@pngembroidery.net", mL, 26);
 
     doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(255, 255, 255);
-    doc.text(orderNumber ? "TAX INVOICE" : "DRAFT INVOICE", mR, 13, { align: "right" });
+    doc.text(type === "invoice" ? "TAX INVOICE" : "QUOTATION", mR, 13, { align: "right" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(180, 200, 255);
     doc.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), mR, 20, { align: "right" });
     if (orderNumber) doc.text(`Order No: #${orderNumber}`, mR, 26, { align: "right" });
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
     y += 5;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(80, 80, 80);
     if (userEmail) doc.text(userEmail, mL, y);
-    doc.text(`Shipping: ${shippingMethod.charAt(0).toUpperCase() + shippingMethod.slice(1)}`, mR, y, { align: "right" });
+    doc.text("Delivery: Free", mR, y, { align: "right" });
 
     // ── Divider ──
     y += 7;
@@ -148,22 +148,22 @@ export default function CheckoutPage() {
       margin: { left: mL, right: 14 },
     });
 
-    // ── Totals (right-aligned, drawn manually) ──
+    // ── Totals ──
     let ty = (doc as any).lastAutoTable.finalY + 8;
     const tR     = mR;
     const labelX = tR - 42;
 
     const subtotalRows: [string, string][] = [
-      ["Subtotal",             formatCurrency(subtotal)],
-      ...(customTotal > 0 ? [["Embroidery",            formatCurrency(customTotal)]           as [string, string]] : []),
-      [`Shipping (${shippingMethod})`, formatCurrency(shipping)],
+      ["Subtotal", formatCurrency(subtotal)],
+      ...(customTotal > 0 ? [["Embroidery", formatCurrency(customTotal)] as [string, string]] : []),
+      ["Delivery", "FREE"],
     ];
 
     doc.setFontSize(9);
     subtotalRows.forEach(([label, val]) => {
       doc.setFont("helvetica", "normal"); doc.setTextColor(80, 80, 80);
       doc.text(label, labelX, ty, { align: "right" });
-      doc.setFont("helvetica", "bold"); doc.setTextColor(20, 20, 20);
+      doc.setFont("helvetica", "bold"); doc.setTextColor(val === "FREE" ? 22 : 20, val === "FREE" ? 163 : 20, val === "FREE" ? 74 : 20);
       doc.text(val, tR, ty, { align: "right" });
       ty += 6;
     });
@@ -177,19 +177,20 @@ export default function CheckoutPage() {
     doc.setFillColor(30, 58, 138);
     doc.roundedRect(labelX - 26, ty - 1, tR - (labelX - 26) + 0.5, 9, 1.5, 1.5, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
-    doc.text("TOTAL DUE", labelX, ty + 5, { align: "right" });
+    doc.text("TOTAL", labelX, ty + 5, { align: "right" });
     doc.setFontSize(10);
     doc.text(formatCurrency(total), tR - 1, ty + 5, { align: "right" });
 
     // ── Footer ──
     ty += 18;
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(130, 130, 130);
-    doc.text("Payment is due within 7 days via bank transfer to PNG Embroidery Portal.", mL, ty);
+    doc.text("This quotation is valid for 30 days. Payment via bank transfer to PNG Embroidery Portal.", mL, ty);
     doc.text("For inquiries: sales@pngembroidery.net  ·  Tel: +675 311 2000", mL, ty + 5);
     doc.setFont("helvetica", "italic");
-    doc.text("Thank you for your order!", mL, ty + 10);
+    doc.text("Thank you for your interest!", mL, ty + 10);
 
-    doc.save(`PNG-Embroidery-Invoice-${orderNumber || "draft"}.pdf`);
+    const label = type === "invoice" ? "Invoice" : "Quotation";
+    doc.save(`PNG-Embroidery-${label}-${orderNumber || "draft"}.pdf`);
   }
 
   if (loading) return (
@@ -214,7 +215,7 @@ export default function CheckoutPage() {
       </p>
       <p className="text-sm text-gray-400 mb-8">You and your account manager have been notified.</p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <button onClick={downloadInvoice}
+        <button onClick={() => generatePDF("invoice")}
           className="flex items-center justify-center gap-2 bg-gray-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors">
           <Download size={16} /> Download Invoice
         </button>
@@ -292,24 +293,15 @@ export default function CheckoutPage() {
           {/* Shipping */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <p className="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
-              <Truck size={15} /> Shipping Method
+              <Truck size={15} /> Delivery
             </p>
-            <div className="space-y-2">
-              {[
-                { value: "standard", label: "Standard Delivery", sub: "5–7 business days", price: "$25.00" },
-                { value: "express",  label: "Express Delivery",  sub: "2–3 business days", price: "$60.00" },
-              ].map(opt => (
-                <label key={opt.value} className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all
-                  ${shippingMethod === opt.value ? "border-navy bg-navy/5" : "border-gray-200 hover:border-gray-300"}`}>
-                  <input type="radio" name="shipping" value={opt.value} checked={shippingMethod === opt.value}
-                    onChange={() => setShipping(opt.value as any)} className="accent-navy" />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-gray-800">{opt.label}</p>
-                    <p className="text-xs text-gray-400">{opt.sub}</p>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">{opt.price}</span>
-                </label>
-              ))}
+            <div className="flex items-center gap-3 p-3.5 rounded-xl border-2 border-green-200 bg-green-50">
+              <Truck size={16} className="text-green-600" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-800">Standard Delivery</p>
+                <p className="text-xs text-gray-400">5–7 business days</p>
+              </div>
+              <span className="text-sm font-bold text-green-600">FREE</span>
             </div>
           </div>
 
@@ -343,7 +335,7 @@ export default function CheckoutPage() {
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
-                <span>Shipping</span><span className="font-semibold text-gray-900">{formatCurrency(shipping)}</span>
+                <span>Delivery</span><span className="font-semibold text-green-600">FREE</span>
               </div>
               <div className="border-t border-gray-100 pt-2.5 flex justify-between font-extrabold text-gray-900 text-base">
                 <span>Total</span><span>{formatCurrency(total)}</span>
@@ -367,10 +359,10 @@ export default function CheckoutPage() {
               {discountApplied && <p className="text-xs text-green-600 mt-1.5 font-semibold">✓ Discount applied</p>}
             </div>
 
-            {/* Download invoice draft */}
-            <button onClick={downloadInvoice}
+            {/* Download quotation draft */}
+            <button onClick={() => generatePDF("quotation")}
               className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 font-bold text-sm py-2.5 rounded-xl hover:bg-gray-50 transition-colors mb-3">
-              <Download size={14} /> Download Invoice
+              <Download size={14} /> Download Quotation
             </button>
 
             {/* Confirm order */}

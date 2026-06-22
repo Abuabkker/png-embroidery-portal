@@ -41,14 +41,14 @@ export async function POST(req: NextRequest) {
 
   const subtotal    = cartItems.reduce((s, i) => s + Number(i.product.basePrice) * i.quantity, 0);
   const customTotal = cartItems.reduce((s, i) => i.customization ? s + Number(i.product.customSurcharge) * i.quantity : s, 0);
-  const shippingCost = shippingMethod === "express" ? 60 : 25;
+  const shippingCost = 0;
   const total = subtotal + customTotal + shippingCost - discount;
 
   const order = await prisma.order.create({
     data: {
       orderNumber: generateOrderNumber(),
       userId,
-      status: "CONFIRMED",
+      status: "PENDING_CONFIRMATION",
       paymentStatus: "PENDING",
       paymentMethod,
       subtotal,
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           lineTotal:      (Number(i.product.basePrice) + (i.customization ? Number(i.product.customSurcharge) : 0)) * i.quantity,
         })) as any,
       },
-      statusHistory: { create: { status: "CONFIRMED", note: "Order confirmed by customer" } },
+      statusHistory: { create: { status: "PENDING_CONFIRMATION", note: "Order submitted by customer, awaiting admin confirmation" } },
     },
     include: { items: true },
   });
@@ -81,6 +81,24 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Deduct variant stock for each cart item that has size/color customization
+  await Promise.all(
+    cartItems
+      .filter(i => i.customization && ((i.customization as any).size !== undefined || (i.customization as any).color !== undefined))
+      .map(i => {
+        const c = i.customization as any;
+        return prisma.productVariant.updateMany({
+          where: {
+            productId: i.productId,
+            size: c.size ?? "",
+            color: c.color ?? "",
+            stockQty: { gte: i.quantity },
+          },
+          data: { stockQty: { decrement: i.quantity } },
+        });
+      })
+  );
+
   await prisma.cartItem.deleteMany({ where: { userId } });
 
   // ── Broadcast notifications ──
@@ -90,9 +108,9 @@ export async function POST(req: NextRequest) {
     data: {
       userId,
       orderId: order.id,
-      type:    "order_confirmed",
-      title:   `Order #${order.orderNumber} Confirmed`,
-      message: `Your order has been placed successfully on ${dateStr}. Total: ${formatCurrency(Number(total))}. We'll notify you as it progresses.`,
+      type:    "order_received",
+      title:   `Order #${order.orderNumber} Received`,
+      message: `Your order has been submitted on ${dateStr}. Total: ${formatCurrency(Number(total))}. Our team will confirm it shortly.`,
     },
   });
 

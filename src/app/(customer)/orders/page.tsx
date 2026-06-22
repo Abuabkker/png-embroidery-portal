@@ -15,7 +15,7 @@ export default function OrdersPage() {
     fetch("/api/orders").then(r => r.json()).then(d => { setOrders(d.data || []); setLoading(false); });
   }, []);
 
-  const tabs = ["ALL","CONFIRMED","ORDER_RECEIVED","IN_REVIEW","PROOF_SENT","IN_PRODUCTION","SHIPPED","DELIVERED","CANCELLED"];
+  const tabs = ["ALL","PENDING_CONFIRMATION","CONFIRMED","ORDER_RECEIVED","IN_REVIEW","PROOF_SENT","IN_PRODUCTION","SHIPPED","DELIVERED","CANCELLED"];
   const filtered = orders.filter(o =>
     (tab === "ALL" || o.status === tab) &&
     o.orderNumber.toLowerCase().includes(search.toLowerCase())

@@ -54,10 +54,12 @@ function BadgePill({ label }: { label: string }) {
 }
 
 type SizeEntry = { color: string; size: string; qty: number; names: string[] };
+type Variant   = { id: string; size: string; color: string; stockQty: number };
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [product, setProduct]         = useState<any>(null);
+  const [fetchError, setFetchError]   = useState(false);
   const [loading, setLoading]         = useState(true);
   const [selectedColor, setColor]     = useState("");
   const [sizeEntries, setSizeEntries] = useState<SizeEntry[]>([]);
@@ -72,17 +74,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     fetch(`/api/products/${slug}`)
       .then(r => r.json())
       .then(d => {
+        if (!d.data) { setFetchError(true); setLoading(false); return; }
         const p = d.data;
         setProduct(p);
         if (p?.colors?.length) setColor(p.colors[0]);
-        // One entry per color × size combination
         const colors: string[] = p?.colors?.length ? p.colors : [""];
         const sizes: string[]  = p?.sizes  ?? [];
         setSizeEntries(
           colors.flatMap(color => sizes.map(size => ({ color, size, qty: 0, names: [] })))
         );
         setLoading(false);
-      });
+      })
+      .catch(() => { setFetchError(true); setLoading(false); });
   }, [slug]);
 
   const meta = useMemo(() => {
@@ -114,13 +117,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
   useEffect(() => { setActiveImg(0); }, [selectedColor]);
 
   function updateSizeQty(color: string, size: string, newQty: number) {
+    const stock = variantStock(color, size);
+    const capped = stock !== null ? Math.min(newQty, stock) : newQty;
     setSizeEntries(prev => prev.map(e =>
       e.color !== color || e.size !== size ? e : {
         ...e,
-        qty: newQty,
-        names: newQty > e.names.length
-          ? [...e.names, ...Array(newQty - e.names.length).fill("")]
-          : e.names.slice(0, newQty),
+        qty: capped,
+        names: capped > e.names.length
+          ? [...e.names, ...Array(capped - e.names.length).fill("")]
+          : e.names.slice(0, capped),
       }
     ));
   }
@@ -182,12 +187,29 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     </div>
   );
 
+  if (fetchError) return (
+    <div className="text-center py-24">
+      <p className="font-bold text-gray-900 mb-2">Could not load product</p>
+      <p className="text-sm text-gray-500 mb-4">Please try refreshing the page.</p>
+      <button onClick={() => window.location.reload()} className="text-navy text-sm font-semibold hover:underline mr-4">Refresh</button>
+      <Link href="/shop" className="text-sm text-gray-500 hover:underline">← Back to Shop</Link>
+    </div>
+  );
+
   if (!product) return (
     <div className="text-center py-24">
       <p className="font-bold text-gray-900 mb-2">Product not found</p>
       <Link href="/shop" className="text-navy text-sm font-semibold hover:underline">← Back to Shop</Link>
     </div>
   );
+
+  const variants: Variant[] = product.variants ?? [];
+
+  function variantStock(color: string, size: string): number | null {
+    if (variants.length === 0) return null; // no variant data — unlimited
+    const v = variants.find(v => v.color === color && v.size === size);
+    return v ? v.stockQty : null;
+  }
 
   const outOfStock = product.stockQty === 0;
 
@@ -351,23 +373,36 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
               {/* Only show sizes for selectedColor */}
               <div className="space-y-1.5">
-                {sizeEntries.filter(e => e.color === selectedColor || (!selectedColor && !e.color)).map(entry => (
-                  <div key={entry.size} className="flex items-center gap-3">
-                    <span className={`w-10 text-sm font-bold ${entry.qty > 0 ? "text-gray-900" : "text-gray-400"}`}>
-                      {entry.size}
-                    </span>
-                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                      <button onClick={() => updateSizeQty(entry.color, entry.size, Math.max(0, entry.qty - 1))}
-                        className="px-3 py-2 text-gray-700 hover:bg-gray-50 text-base font-light select-none">−</button>
-                      <span className="px-3 text-sm font-bold text-gray-900 min-w-[2rem] text-center">{entry.qty}</span>
-                      <button onClick={() => updateSizeQty(entry.color, entry.size, entry.qty + 1)}
-                        className="px-3 py-2 text-gray-700 hover:bg-gray-50 text-base font-light select-none">+</button>
+                {sizeEntries.filter(e => e.color === selectedColor || (!selectedColor && !e.color)).map(entry => {
+                  const stock = variantStock(entry.color, entry.size);
+                  const isVariantOOS = stock !== null && stock === 0;
+                  const isLowStock   = stock !== null && stock > 0 && stock <= 5;
+                  return (
+                    <div key={entry.size} className="flex items-center gap-3">
+                      <span className={`w-10 text-sm font-bold ${isVariantOOS ? "text-gray-300" : entry.qty > 0 ? "text-gray-900" : "text-gray-400"}`}>
+                        {entry.size}
+                      </span>
+                      <div className={`flex items-center border rounded-lg overflow-hidden ${isVariantOOS ? "border-gray-200 opacity-40 pointer-events-none" : "border-gray-300"}`}>
+                        <button onClick={() => updateSizeQty(entry.color, entry.size, Math.max(0, entry.qty - 1))}
+                          className="px-3 py-2 text-gray-700 hover:bg-gray-50 text-base font-light select-none">−</button>
+                        <span className="px-3 text-sm font-bold text-gray-900 min-w-[2rem] text-center">{entry.qty}</span>
+                        <button
+                          onClick={() => updateSizeQty(entry.color, entry.size, entry.qty + 1)}
+                          disabled={stock !== null && entry.qty >= stock}
+                          className="px-3 py-2 text-gray-700 hover:bg-gray-50 text-base font-light select-none disabled:opacity-30">+</button>
+                      </div>
+                      {isVariantOOS ? (
+                        <span className="text-xs font-semibold text-red-400">Out of stock</span>
+                      ) : isLowStock ? (
+                        <span className="text-xs font-semibold text-orange-500">Only {stock} left</span>
+                      ) : stock !== null && stock <= 20 ? (
+                        <span className="text-xs text-gray-400">{stock} available</span>
+                      ) : entry.qty > 0 ? (
+                        <span className="text-xs text-gray-400">{entry.qty} item{entry.qty > 1 ? "s" : ""}</span>
+                      ) : null}
                     </div>
-                    {entry.qty > 0 && (
-                      <span className="text-xs text-gray-400">{entry.qty} item{entry.qty > 1 ? "s" : ""}</span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Summary of other colors already selected */}

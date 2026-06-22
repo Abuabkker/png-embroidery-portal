@@ -145,10 +145,38 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     doc.setFontSize(10);
     doc.text(formatCurrency(Number(order.total)), tR - 1, ty + 5, { align: "right" });
 
+    // ── PAID stamp ──
+    if (order.paymentStatus === "PAID") {
+      const cx = W / 2, cy = 148;
+      doc.saveGraphicsState();
+      doc.setGState(new (doc as any).GState({ opacity: 0.12 }));
+      doc.setDrawColor(22, 163, 74); doc.setTextColor(22, 163, 74);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(62);
+      doc.text("PAID", cx, cy, { align: "center", angle: 340 });
+      doc.restoreGraphicsState();
+      // Small solid badge near total
+      doc.setFillColor(22, 163, 74);
+      doc.roundedRect(labelX - 26, ty + 12, 32, 8, 1.5, 1.5, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+      doc.text("PAID", labelX - 10, ty + 17.5, { align: "center" });
+      ty += 14;
+    } else if (order.paymentStatus === "PARTIALLY_PAID") {
+      doc.setFillColor(37, 99, 235);
+      doc.roundedRect(labelX - 36, ty + 12, 44, 8, 1.5, 1.5, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+      doc.text("PARTIALLY PAID", labelX - 14, ty + 17.5, { align: "center" });
+      ty += 14;
+    }
+
     // ── Footer ──
     ty += 18;
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(130, 130, 130);
-    doc.text("Payment is due within 7 days via bank transfer to PNG Embroidery Portal.", mL, ty);
+    doc.text(
+      order.paymentStatus === "PAID"
+        ? "Payment received. Thank you for your payment."
+        : "Payment is due within 7 days via bank transfer to PNG Embroidery Portal.",
+      mL, ty
+    );
     doc.text("For inquiries: sales@pngembroidery.net  ·  Tel: +675 311 2000", mL, ty + 5);
     doc.setFont("helvetica", "italic");
     doc.text("Thank you for your order!", mL, ty + 10);
@@ -186,8 +214,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <span className="text-gray-400"> · {new Date(order.createdAt).toLocaleString()}</span>
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <StatusBadge status={order.status} />
+          {order.paymentStatus === "PAID" && (
+            <span className="text-xs font-bold bg-green-100 text-green-700 border border-green-200 px-2.5 py-1 rounded-md uppercase tracking-wide">✓ Paid</span>
+          )}
+          {order.paymentStatus === "PARTIALLY_PAID" && (
+            <span className="text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-md uppercase tracking-wide">Partially Paid</span>
+          )}
+          {order.paymentStatus === "PENDING" && (
+            <span className="text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200 px-2.5 py-1 rounded-md uppercase tracking-wide">Payment Pending</span>
+          )}
           <button onClick={downloadInvoice}
             className="flex items-center gap-2 bg-gray-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-gray-700 transition-colors">
             <Download size={13} /> Invoice
