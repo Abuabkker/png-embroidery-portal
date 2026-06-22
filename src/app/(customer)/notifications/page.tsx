@@ -1,18 +1,25 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, ShoppingBag, Package, AlertCircle, Info, Filter } from "lucide-react";
+import { Bell, CheckCheck, ShoppingBag, Package, AlertCircle, Info, Filter, BadgeDollarSign, XCircle } from "lucide-react";
 
 const TYPE_META: Record<string, { icon: any; color: string; label: string }> = {
-  order_confirmed: { icon: ShoppingBag, color: "text-green-600 bg-green-50",  label: "Order" },
-  order_placed:    { icon: ShoppingBag, color: "text-blue-600 bg-blue-50",    label: "Order" },
-  order_update:    { icon: Package,     color: "text-purple-600 bg-purple-50", label: "Update" },
-  proof_ready:     { icon: AlertCircle, color: "text-amber-600 bg-amber-50",  label: "Proof" },
-  shipped:         { icon: Package,     color: "text-indigo-600 bg-indigo-50", label: "Shipped" },
-  system:          { icon: Info,        color: "text-gray-600 bg-gray-100",    label: "System" },
+  // order lifecycle
+  order_received:  { icon: ShoppingBag,     color: "text-blue-600 bg-blue-50",    label: "Orders" },
+  order_placed:    { icon: ShoppingBag,     color: "text-blue-600 bg-blue-50",    label: "Orders" },
+  order_confirmed: { icon: ShoppingBag,     color: "text-green-600 bg-green-50",  label: "Orders" },
+  order_update:    { icon: Package,         color: "text-purple-600 bg-purple-50", label: "Orders" },
+  order_cancelled: { icon: XCircle,         color: "text-red-600 bg-red-50",      label: "Orders" },
+  // payment
+  payment_update:  { icon: BadgeDollarSign, color: "text-emerald-600 bg-emerald-50", label: "Payment" },
+  // proof / production
+  proof_ready:     { icon: AlertCircle,     color: "text-amber-600 bg-amber-50",  label: "Proof" },
+  shipped:         { icon: Package,         color: "text-indigo-600 bg-indigo-50", label: "Shipped" },
+  // fallback
+  system:          { icon: Info,            color: "text-gray-600 bg-gray-100",   label: "System" },
 };
 
-const FILTERS = ["All", "Order", "Update", "Proof", "Shipped", "System"];
+const FILTERS = ["All", "Unread", "Orders", "Payment", "Proof", "Shipped"];
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -43,9 +50,10 @@ export default function NotificationsPage() {
   }
 
   const filtered = notifications.filter(n => {
-    if (filter === "All") return true;
-    const meta = TYPE_META[n.type];
-    return meta?.label === filter;
+    if (filter === "All")    return true;
+    if (filter === "Unread") return !n.isRead;
+    const meta = TYPE_META[n.type] ?? TYPE_META["system"];
+    return meta.label === filter;
   });
 
   function timeAgo(date: string) {
@@ -80,9 +88,15 @@ export default function NotificationsPage() {
         <Filter size={13} className="text-gray-400 shrink-0" />
         {FILTERS.map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all
               ${filter === f ? "bg-navy text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
             {f}
+            {f === "Unread" && unread > 0 && (
+              <span className={`text-[10px] font-extrabold rounded-full w-4 h-4 flex items-center justify-center leading-none
+                ${filter === f ? "bg-white text-navy" : "bg-navy text-white"}`}>
+                {unread}
+              </span>
+            )}
           </button>
         ))}
       </div>
